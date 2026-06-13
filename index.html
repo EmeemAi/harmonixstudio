@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Harmonix Studio</title>
+
+  <!-- Tailwind CSS para los estilos de la aplicación -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Mapa de importaciones para cargar React y los íconos (Lucide) desde internet -->
+  <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@18.2.0",
+        "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+        "lucide-react": "https://esm.sh/lucide-react@0.292.0"
+      }
+    }
+  </script>
+
+  <!-- Babel para traducir tu código React (TSX) al vuelo -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    /* Pantalla de carga mientras se procesa tu archivo TSX */
+    #root:empty {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #0f172a;
+      color: white;
+      font-family: sans-serif;
+    }
+    #root:empty::after {
+      content: "Cargando Harmonix Studio...";
+      font-size: 1.5rem;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-white antialiased">
+  <div id="root"></div>
+
+  <script type="module">
+    import React from 'react';
+    import { createRoot } from 'react-dom/client';
+
+    async function initApp() {
+      try {
+        // 1. Descargamos tu archivo harmonix_studio.tsx
+        const response = await fetch('./harmonix_studio.tsx');
+        if (!response.ok) throw new Error("No se pudo cargar el archivo harmonix_studio.tsx");
+        const tsxCode = await response.text();
+
+        // 2. Traducimos el código TypeScript/JSX a código JavaScript estándar
+        const jsCode = Babel.transform(tsxCode, { 
+          filename: 'harmonix_studio.tsx',
+          presets: ['react', 'typescript'] 
+        }).code;
+
+        // 3. Creamos un módulo ejecutable en memoria
+        const blob = new Blob([jsCode], { type: 'application/javascript' });
+        const url = URL.createObjectURL(blob);
+
+        // 4. Importamos la aplicación traducida
+        const module = await import(url);
+        const App = module.default;
+
+        // 5. Iniciamos la app en la pantalla
+        const root = createRoot(document.getElementById('root'));
+        root.render(React.createElement(App));
+      } catch (error) {
+        console.error("Error al cargar la aplicación:", error);
+        document.getElementById('root').innerHTML = `
+          <div style="text-align: center; color: #f87171; padding: 2rem;">
+            <h2>Error al iniciar</h2>
+            <p>${error.message}</p>
+            <p style="font-size: 0.9em; margin-top: 1rem; color: #94a3b8;">
+              Nota: Si abres este archivo dándole doble clic en tu PC, no funcionará por seguridad del navegador. 
+              <strong>Esto está diseñado para funcionar una vez que lo subas a GitHub Pages.</strong>
+            </p>
+          </div>
+        `;
+      }
+    }
+
+    initApp();
+  </script>
+</body>
+</html>
