@@ -60,6 +60,7 @@
 
         // 2. Traducimos el código TypeScript/JSX a código JavaScript estándar
         const jsCode = Babel.transform(tsxCode, { 
+          filename: 'harmonix_studio.tsx',
           presets: ['react', 'typescript'] 
         }).code;
 
